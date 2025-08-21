@@ -1,6 +1,6 @@
-# AWS Certification Preparation Projects
+# AWS Projects
 
-Welcome to your hands-on AWS certification preparation journey! This repository contains a series of projects designed to help you master AWS services and prepare for the AWS Certified Solutions Architect - Professional and AWS Certified DevOps Engineer - Professional exams. Each project focuses on practical implementation, infrastructure as code (Terraform), and continuous integration/continuous delivery (CI/CD) with GitHub Actions.
+Welcome to your hands-on AWS journey! This repository contains a series of projects designed to help you master AWS services. Each project focuses on practical implementation, infrastructure as code (Terraform), and continuous integration/continuous delivery (CI/CD) with GitHub Actions.
 
 ## Initial Setup Instructions
 
