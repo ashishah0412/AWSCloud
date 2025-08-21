@@ -1,0 +1,46 @@
+name: Application CI/CD Pipeline - Multi-Tier Web App
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - AWSCloud/03-multi-tier-web-app/app/**
+
+jobs:
+  deploy-app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Upload application code to S3
+        run: |
+          aws s3 sync ./AWSCloud/03-multi-tier-web-app/app/web-app/ s3://YOUR_APP_CODE_S3_BUCKET_NAME/web-app/ --delete
+
+      - name: Get EC2 Instance IDs from Auto Scaling Group
+        id: get_instance_ids
+        run: |
+          INSTANCE_IDS=$(aws autoscaling describe-auto-scaling-groups \
+            --auto-scaling-group-names YOUR_ASG_NAME \
+            --query "AutoScalingGroups[0].Instances[?LifecycleState==`InService`].InstanceId" \
+            --output text)
+          echo "instance_ids=$INSTANCE_IDS" >> $GITHUB_OUTPUT
+
+      - name: Deploy application code to EC2 instances via SSM Run Command
+        if: ${{ steps.get_instance_ids.outputs.instance_ids != '' }}
+        run: |
+          aws ssm send-command \
+            --instance-ids ${{ steps.get_instance_ids.outputs.instance_ids }} \
+            --document-name "AWS-RunShellScript" \
+            --parameters commands="sudo apt update && sudo apt install -y apache2 php libapache2-mod-php php-mysql && sudo rm -rf /var/www/html/* && sudo aws s3 sync s3://YOUR_APP_CODE_S3_BUCKET_NAME/web-app/ /var/www/html/ && sudo systemctl restart apache2" \
+            --comment "Deploy web application code"
+
+

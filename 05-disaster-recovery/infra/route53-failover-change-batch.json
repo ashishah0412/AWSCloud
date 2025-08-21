@@ -1,0 +1,39 @@
+{
+  "Comment": "Failover DNS to secondary region",
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "app.dr-replication.com",
+        "Type": "A",
+        "SetIdentifier": "primary-region",
+        "Failover": "PRIMARY",
+        "TTL": 60,
+        "ResourceRecords": [
+          {
+            "Value": "192.0.2.1" # Placeholder for primary region ALB/EC2 IP
+          }
+        ],
+        "HealthCheckId": "YOUR_PRIMARY_HEALTH_CHECK_ID"
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "app.dr-replication.com",
+        "Type": "A",
+        "SetIdentifier": "secondary-region",
+        "Failover": "SECONDARY",
+        "TTL": 60,
+        "ResourceRecords": [
+          {
+            "Value": "198.51.100.1" # Placeholder for secondary region ALB/EC2 IP
+          }
+        ],
+        "HealthCheckId": "YOUR_SECONDARY_HEALTH_CHECK_ID"
+      }
+    }
+  ]
+}
+
+

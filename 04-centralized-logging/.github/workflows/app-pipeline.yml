@@ -1,0 +1,39 @@
+name: Application CI/CD Pipeline - Log Processor Lambda
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - AWSCloud/04-centralized-logging/app/log_processor_lambda/**
+
+jobs:
+  deploy-lambda:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Install dependencies
+        run: pip install -r ./AWSCloud/04-centralized-logging/app/log_processor_lambda/requirements.txt -t ./package
+        working-directory: ./AWSCloud/04-centralized-logging/app/log_processor_lambda
+
+      - name: Zip Lambda function code
+        run: |
+          cd ./AWSCloud/04-centralized-logging/app/log_processor_lambda/package
+          zip -r9 ../function.zip .
+          cd ../
+          zip -g function.zip main.py
+
+      - name: Deploy Lambda function
+        run: aws lambda update-function-code --function-name YOUR_LOG_PROCESSOR_LAMBDA_NAME --zip-file fileb://function.zip
+        working-directory: ./AWSCloud/04-centralized-logging/app/log_processor_lambda
+
+
