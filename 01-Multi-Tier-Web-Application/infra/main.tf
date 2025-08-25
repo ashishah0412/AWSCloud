@@ -203,7 +203,7 @@ resource "aws_db_instance" "web_app_db" {
   engine_version       = "14.12"
   instance_class       = "db.t3.micro"
   identifier           = "${var.project_name}-web-app-db"
-  username             = "admin"
+  username             = "dbadmin"
   password             = var.db_password
   db_subnet_group_name = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
