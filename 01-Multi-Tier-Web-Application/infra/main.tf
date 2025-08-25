@@ -133,7 +133,7 @@ resource "aws_autoscaling_group" "web_app_asg" {
   vpc_zone_identifier       = module.vpc.private_subnets
   launch_template {
     id      = aws_launch_template.web_app_lt.id
-    version = "$$Latest"
+    version = "$Latest"
   }
   health_check_type         = "ELB"
   health_check_grace_period = 300
@@ -200,7 +200,7 @@ resource "aws_db_subnet_group" "rds_subnet_group" {
 resource "aws_db_instance" "web_app_db" {
   allocated_storage    = 20
   engine               = "postgres"
-  engine_version       = "14.5"
+  engine_version       = "14.11"
   instance_class       = "db.t3.micro"
   identifier           = "${var.project_name}-web-app-db"
   username             = "admin"
