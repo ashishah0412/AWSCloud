@@ -56,7 +56,7 @@ jobs:
       - name: Terraform Init
         id: init
         run: terraform init -backend-config="backend.tf"
-        working-directory: projects/01-MultiTierWebApp/infra/
+        working-directory: 01-Multi-Tier-Web-Application/infra/
 
       - name: Terraform Validate
         if: github.event.inputs.action == 'validate' ||
@@ -64,20 +64,20 @@ jobs:
             github.event.inputs.action == 'apply' ||
             github.event.inputs.action == 'destroy'
         run: terraform validate
-        working-directory: projects/01-MultiTierWebApp/infra/
+        working-directory: 01-Multi-Tier-Web-Application/infra/
 
       - name: Terraform Plan
         if: github.event.inputs.action == 'plan' ||
             github.event.inputs.action == 'apply'
         run: terraform plan -out=tfplan
-        working-directory: projects/01-MultiTierWebApp/infra/
+        working-directory: 01-Multi-Tier-Web-Application/infra/
 
       - name: Terraform Apply
         if: github.event.inputs.action == 'apply' && github.event.inputs.confirm_apply == 'yes'
         run: terraform apply -auto-approve tfplan
-        working-directory: projects/01-MultiTierWebApp/infra/
+        working-directory: 01-Multi-Tier-Web-Application/infra/
 
       - name: Terraform Destroy
         if: github.event.inputs.action == 'destroy' && github.event.inputs.confirm_destroy == 'yes'
         run: terraform destroy -auto-approve
-        working-directory: projects/01-MultiTierWebApp/infra/
+        working-directory: 01-Multi-Tier-Web-Application/infra/
