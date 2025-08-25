@@ -200,7 +200,7 @@ resource "aws_db_subnet_group" "rds_subnet_group" {
 resource "aws_db_instance" "web_app_db" {
   allocated_storage    = 20
   engine               = "postgres"
-  engine_version       = "14.11"
+  engine_version       = "14.12"
   instance_class       = "db.t3.micro"
   identifier           = "${var.project_name}-web-app-db"
   username             = "admin"
