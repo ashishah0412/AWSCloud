@@ -55,7 +55,7 @@ jobs:
 
       - name: Terraform Init
         id: init
-        run: terraform init -backend-config="backend.tf"
+        run: terraform init
         working-directory: 01-Multi-Tier-Web-Application/infra/
 
       - name: Terraform Validate
