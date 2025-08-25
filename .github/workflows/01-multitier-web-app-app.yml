@@ -33,5 +33,5 @@ jobs:
 
       - name: Upload static website to S3
         run: |
-          aws s3 sync./app/ s3://multi-tier-app-static-website-bucket-261358761679/ --delete
+          aws s3 sync ./app/ s3://multi-tier-app-static-website-bucket-261358761679/ --delete
         working-directory: 01-Multi-Tier-Web-Application/
