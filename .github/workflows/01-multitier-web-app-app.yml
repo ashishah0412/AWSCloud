@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - '01-MultiTierWebApp/app/**'
+      - '01-Multi-Tier-Web-Application/app/**'
 
 permissions:
   id-token: write
