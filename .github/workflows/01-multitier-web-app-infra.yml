@@ -1,0 +1,83 @@
+# AWS Cloud/projects/01-MultiTierWebApp/.github/workflows/infra.yml
+name: Terraform Infrastructure Lifecycle
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action to perform (init, validate, plan, apply, destroy)'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - init
+          - validate
+          - plan
+          - apply
+          - destroy
+      confirm_apply:
+        description: 'Type "yes" to confirm apply action'
+        required: false
+        default: 'no'
+        type: string
+      confirm_destroy:
+        description: 'Type "yes" to confirm destroy action'
+        required: false
+        default: 'no'
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    env:
+      TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.TF_VAR_aws_region }}
+          role-session-name: github-actions-terraform-session
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.0
+
+      - name: Terraform Init
+        id: init
+        run: terraform init -backend-config="backend.tf"
+        working-directory: projects/01-MultiTierWebApp/infra/
+
+      - name: Terraform Validate
+        if: github.event.inputs.action == 'validate' ||
+            github.event.inputs.action == 'plan' ||
+            github.event.inputs.action == 'apply' ||
+            github.event.inputs.action == 'destroy'
+        run: terraform validate
+        working-directory: projects/01-MultiTierWebApp/infra/
+
+      - name: Terraform Plan
+        if: github.event.inputs.action == 'plan' ||
+            github.event.inputs.action == 'apply'
+        run: terraform plan -out=tfplan
+        working-directory: projects/01-MultiTierWebApp/infra/
+
+      - name: Terraform Apply
+        if: github.event.inputs.action == 'apply' && github.event.inputs.confirm_apply == 'yes'
+        run: terraform apply -auto-approve tfplan
+        working-directory: projects/01-MultiTierWebApp/infra/
+
+      - name: Terraform Destroy
+        if: github.event.inputs.action == 'destroy' && github.event.inputs.confirm_destroy == 'yes'
+        run: terraform destroy -auto-approve
+        working-directory: projects/01-MultiTierWebApp/infra/

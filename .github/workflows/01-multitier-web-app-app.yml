@@ -1,0 +1,37 @@
+# AWS Cloud/projects/01-MultiTierWebApp/.github/workflows/app.yml
+name: Application Deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '01-MultiTierWebApp/app/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      S3_BUCKET_NAME: "multi-tier-app-static-website-bucket-${{ github.event.repository.owner.id }}"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.TF_VAR_aws_region }}
+          role-session-name: github-actions-app-deploy-session
+
+      - name: Upload static website to S3
+        run: |
+          aws s3 sync./app/ s3://${{ S3_BUCKET_NAME }}/ --delete
+        working-directory: projects/01-MultiTierWebApp/
