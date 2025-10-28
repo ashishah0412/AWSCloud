@@ -55,6 +55,14 @@ jobs:
         with:
           terraform_version: '1.8.0'
 
+      - name: Debug workspace (verify paths)
+        run: |
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+          echo "pwd: $(pwd)"
+          ls -la "$GITHUB_WORKSPACE"
+          ls -la "$GITHUB_WORKSPACE/02-Microservices-Architecture" || true
+          ls -la "$GITHUB_WORKSPACE/02-Microservices-Architecture/infra" || true    
+
       - name: Terraform Init
         if: github.event.inputs.action == 'init' || github.event.inputs.action == 'plan' || github.event.inputs.action == 'apply' || github.event.inputs.action == 'destroy' || github.event.inputs.action == 'validate'
         run: terraform init -input=false -no-color
