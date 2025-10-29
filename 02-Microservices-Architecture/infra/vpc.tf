@@ -15,7 +15,6 @@ tags = { Name = "${local.name_prefix}-igw" }
 
 
 resource "aws_eip" "nat" {
-vpc = true
 count = 1
 }
 
