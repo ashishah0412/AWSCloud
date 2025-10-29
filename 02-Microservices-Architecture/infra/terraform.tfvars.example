@@ -1,6 +1,0 @@
-aws_region = "us-west-2"
-account_id = "123456789012"
-project = "acsc"
-environment = "prod"
-rds_username = "acsc_admin"
-rds_password = "CHANGE_ME"

@@ -1,0 +1,6 @@
+aws_region = "us-east-1"
+account_id = "261358761679"
+project = "awsuifargate"
+environment = "dev"
+rds_username = "rdsdb_admin"
+rds_password = "CHANGE_ME"
