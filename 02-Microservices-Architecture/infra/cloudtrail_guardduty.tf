@@ -10,7 +10,7 @@ depends_on = [aws_s3_bucket.cloudtrail_bucket]
 
 
 resource "aws_guardduty_detector" "gd" {
-enable = true
+enable = false
 }
 
 
