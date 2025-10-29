@@ -1,9 +1,19 @@
+/*
 resource "aws_subnet" "public" {
 vpc_id = aws_vpc.main.id
 cidr_block = var.public_subnet_cidrs[each.value]
 availability_zone = "${var.aws_region}${var.azs[each.value]}"
 map_public_ip_on_launch = true
 tags = { Name = "${local.name_prefix}-public-${each.value}" }
+}
+*/
+
+resource "aws_subnet" "uiprivate" {
+for_each = toset(range(length(var.ui_private_subnet_cidrs)))
+vpc_id = aws_vpc.main.id
+cidr_block = var.ui_private_subnet_cidrs[each.value]
+availability_zone = "${var.aws_region}${var.azs[each.value]}"
+tags = { Name = "${local.name_prefix}-private-${each.value}" }
 }
 
 
