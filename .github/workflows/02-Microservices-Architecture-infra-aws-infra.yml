@@ -78,6 +78,9 @@ jobs:
         run: terraform plan -input=false -var-file=envs/prod.tfvars -out=tfplan -no-color 
         working-directory: 02-Microservices-Architecture/aws_infra/
 
+      - name: Show Terraform Plan Summary
+        run: terraform show -no-color tfplan | tail -n 50  
+
       - name: Terraform Apply (uses plan)
         if: github.event.inputs.action == 'apply' && github.event.inputs.confirm_apply == 'yes'
         run: terraform apply -auto-approve tfplan
