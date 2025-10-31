@@ -75,7 +75,7 @@ jobs:
 
       - name: Terraform Plan
         if: github.event.inputs.action == 'plan'
-        run: terraform plan -input=false -var-file=env/dev.tfvars -out=tfplan -no-color 
+        run: terraform plan -input=false -var-file=envs/prod.tfvars -out=tfplan -no-color 
         working-directory: 02-Microservices-Architecture/aws_infra/
 
       - name: Terraform Apply (uses plan)
@@ -85,5 +85,5 @@ jobs:
 
       - name: Terraform Destroy
         if: github.event.inputs.action == 'destroy' && github.event.inputs.confirm_destroy == 'yes'
-        run: terraform destroy -auto-approve -no-color -var-file=env/dev.tfvars
+        run: terraform destroy -auto-approve -no-color -var-file=envs/prod.tfvars
         working-directory: 02-Microservices-Architecture/aws_infra/
