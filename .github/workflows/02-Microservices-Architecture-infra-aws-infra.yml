@@ -78,12 +78,6 @@ jobs:
         run: terraform plan -input=false -var-file=envs/prod.tfvars -out=tfplan -no-color | tee plan_output.txt
         working-directory: 02-Microservices-Architecture/aws_infra/
 
-      # Upload the plan file for later steps
-      - name: Upload plan artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: tfplan
-          path: tfplan  
 
       - name: Terraform Apply (uses plan)
         if: github.event.inputs.action == 'apply' && github.event.inputs.confirm_apply == 'yes'
