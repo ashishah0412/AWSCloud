@@ -2,10 +2,6 @@ terraform {
   required_version = ">= 1.6.0"
 }
 
-provider "aws" {
-  region = var.aws_region
-}
-
 module "network" {
   source   = "./modules/network"
   vpc_cidr = var.vpc_cidr
@@ -17,10 +13,10 @@ module "iam" {
 }
 
 module "ecr" {
-  source          = "./modules/ecr"
-  ecr_repo_prefix = var.ecr_repo_prefix
-  ecs_services    = var.ecs_services
+  source     = "./modules/ecr"
+  repo_names = ["ui-app", "service1", "service2", "service3", "service4", "service5"]
 }
+
 
 module "alb" {
   source       = "./modules/alb"
@@ -61,4 +57,9 @@ module "rds" {
   skip_final_snapshot  = var.rds_skip_final_snapshot
   deletion_protection  = var.rds_deletion_protection
   db_backup_retention_days = var.db_backup_retention_days
+}
+
+module "ecr" {
+  source     = "./modules/ecr"
+  repo_names = ["ui-app", "service1", "service2", "service3", "service4", "service5"]
 }
