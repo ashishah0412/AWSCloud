@@ -58,8 +58,3 @@ module "rds" {
   deletion_protection  = var.rds_deletion_protection
   db_backup_retention_days = var.db_backup_retention_days
 }
-
-module "ecr" {
-  source     = "./modules/ecr"
-  repo_names = ["ui-app", "service1", "service2", "service3", "service4", "service5"]
-}
