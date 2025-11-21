@@ -86,10 +86,6 @@ jobs:
           name: tfplan
           path: 02-Microservices-Architecture/aws_infra/tfplan
 
-      - name: Terraform Apply (uses plan)
-        if: github.event.inputs.action == 'apply' && github.event.inputs.confirm_apply == 'yes'
-        run: terraform apply -auto-approve tfplan
-        working-directory: 02-Microservices-Architecture/aws_infra/
 
       # Download the plan file before running terraform apply
       - name: Download tfplan artifact
@@ -97,6 +93,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: tfplan
+
+      - name: Terraform Apply (uses plan)
+        if: github.event.inputs.action == 'apply' && github.event.inputs.confirm_apply == 'yes'
+        run: terraform apply -auto-approve 02-Microservices-Architecture/aws_infra/tfplan
+        working-directory: 02-Microservices-Architecture/aws_infra/
+
 
       - name: Terraform Destroy
         if: github.event.inputs.action == 'destroy' && github.event.inputs.confirm_destroy == 'yes'
