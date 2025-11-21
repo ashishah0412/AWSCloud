@@ -81,7 +81,7 @@ jobs:
       # Upload the plan file after running terraform plan
       - name: Upload tfplan as artifact
         if: github.event.inputs.action == 'plan'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: tfplan
           path: 02-Microservices-Architecture/aws_infra/tfplan
@@ -94,7 +94,7 @@ jobs:
       # Download the plan file before running terraform apply
       - name: Download tfplan artifact
         if: github.event.inputs.action == 'apply' && github.event.inputs.confirm_apply == 'yes'
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: tfplan
 
