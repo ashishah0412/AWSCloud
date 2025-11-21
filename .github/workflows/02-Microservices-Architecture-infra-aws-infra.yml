@@ -44,11 +44,8 @@ jobs:
       - name: Configure AWS Credentials (OIDC or Secrets)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          # Prefer assuming role via OIDC (set AWS_ROLE_ARN in repo secrets).
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
-          # If you prefer access keys, set AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY in secrets
-          # and remove/comment role-to-assume.
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -73,32 +70,17 @@ jobs:
         run: terraform validate -no-color
         working-directory: 02-Microservices-Architecture/aws_infra/
 
+      # Terraform Plan Step: This runs when you select "plan" or as part of "apply"
       - name: Terraform Plan
-        if: github.event.inputs.action == 'plan'
+        if: github.event.inputs.action == 'plan' || (github.event.inputs.action == 'apply' && github.event.inputs.confirm_apply == 'yes')
         run: terraform plan -input=false -var-file=envs/prod.tfvars -out=tfplan -no-color | tee plan_output.txt
         working-directory: 02-Microservices-Architecture/aws_infra/
 
-      # Upload the plan file after running terraform plan
-      - name: Upload tfplan as artifact
-        if: github.event.inputs.action == 'plan'
-        uses: actions/upload-artifact@v4
-        with:
-          name: tfplan
-          path: 02-Microservices-Architecture/aws_infra/tfplan
-
-
-      # Download the plan file before running terraform apply
-      - name: Download tfplan artifact
-        if: github.event.inputs.action == 'apply' && github.event.inputs.confirm_apply == 'yes'
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan
-
+      # Terraform Apply Step: This runs after the "plan" step completes
       - name: Terraform Apply (uses plan)
         if: github.event.inputs.action == 'apply' && github.event.inputs.confirm_apply == 'yes'
-        run: terraform apply -auto-approve 02-Microservices-Architecture/aws_infra/tfplan
+        run: terraform apply -auto-approve tfplan
         working-directory: 02-Microservices-Architecture/aws_infra/
-
 
       - name: Terraform Destroy
         if: github.event.inputs.action == 'destroy' && github.event.inputs.confirm_destroy == 'yes'
