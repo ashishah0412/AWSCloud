@@ -13,12 +13,11 @@ env:
   TF_WORKING_DIR: 02-Microservices-Architecture/aws_infra/
 
 jobs:
-
-  Terraform-Destroy:
-    name: 🔴 Manual Trigger → Destroy
-    #if: github.event.inputs.action == 'destroy' && github.event.inputs.confirm_destroy == 'yes'  # Ensure both are confirmed
+  terraform:
     runs-on: ubuntu-latest
+    environment: production  # This ensures approval is required before apply step
 
+  
     steps:
       - uses: actions/checkout@v4
 
