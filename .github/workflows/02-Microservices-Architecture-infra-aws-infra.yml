@@ -1,47 +1,29 @@
-name: Terraform - 02 Microservices Infrastructure AWS Infra
+name: Terraform CI/CD Pipeline
 
 on:
-  workflow_dispatch:
-    inputs:
-      action:
-        description: 'Terraform action to perform (init, validate, plan, apply, destroy)'
-        required: true
-        default: 'plan'
-        type: choice
-        options:
-          - init
-          - validate
-          - plan
-          - apply
-          - destroy
-      confirm_apply:
-        description: 'Type "yes" to confirm apply'
-        required: false
-        default: 'no'
-        type: string
-      confirm_destroy:
-        description: 'Type "yes" to confirm destroy'
-        required: false
-        default: 'no'
-        type: string
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
 
 permissions:
   id-token: write
   contents: read
 
+env:
+  TF_WORKING_DIR: 02-Microservices-Architecture/aws_infra/
+
 jobs:
-  terraform:
+
+  Terraform-Plan:
+    name: Init • Validate • Plan
     runs-on: ubuntu-latest
-    env:
-      TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
-      TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}     # optional: remove if not used
-      AWS_REGION: ${{ secrets.AWS_REGION }}
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials (OIDC or Secrets)
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
@@ -49,40 +31,69 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: '1.8.0'
-
-      - name: Debug workspace (verify paths)
-        run: |
-          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
-          echo "pwd: $(pwd)"
-          ls -la "$GITHUB_WORKSPACE"
-          ls -la "$GITHUB_WORKSPACE/02-Microservices-Architecture" || true
-          ls -la "$GITHUB_WORKSPACE/02-Microservices-Architecture/infra" || true    
 
       - name: Terraform Init
-        if: github.event.inputs.action == 'init' || github.event.inputs.action == 'plan' || github.event.inputs.action == 'apply' || github.event.inputs.action == 'destroy' || github.event.inputs.action == 'validate'
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init -input=false -no-color
-        working-directory: 02-Microservices-Architecture/aws_infra/
 
       - name: Terraform Validate
-        if: github.event.inputs.action == 'validate'
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform validate -no-color
-        working-directory: 02-Microservices-Architecture/aws_infra/
 
-      # Terraform Plan Step: This runs when you select "plan" or as part of "apply"
       - name: Terraform Plan
-        if: github.event.inputs.action == 'plan' || (github.event.inputs.action == 'apply' && github.event.inputs.confirm_apply == 'yes')
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform plan -input=false -var-file=envs/prod.tfvars -out=tfplan -no-color | tee plan_output.txt
-        working-directory: 02-Microservices-Architecture/aws_infra/
 
-      # Terraform Apply Step: This runs after the "plan" step completes
-      - name: Terraform Apply (uses plan)
-        if: github.event.inputs.action == 'apply' && github.event.inputs.confirm_apply == 'yes'
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: ${{ env.TF_WORKING_DIR }}/tfplan
+
+  Terraform-Apply:
+    name: 🟢 Manual Approval → Apply
+    needs: Terraform-Plan
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      # Requires approval inside GitHub UI before run!
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+
+      - name: Terraform Apply
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform apply -auto-approve tfplan
-        working-directory: 02-Microservices-Architecture/aws_infra/
+
+  Terraform-Destroy:
+    name: 🔴 Manual Trigger → Destroy
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init -input=false -no-color
 
       - name: Terraform Destroy
-        if: github.event.inputs.action == 'destroy' && github.event.inputs.confirm_destroy == 'yes'
-        run: terraform destroy -auto-approve -no-color -var-file=envs/prod.tfvars
-        working-directory: 02-Microservices-Architecture/aws_infra/
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform destroy -auto-approve -var-file=envs/prod.tfvars
