@@ -68,7 +68,10 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # Re-run Terraform Plan here to regenerate tfplan
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+        # Re-run Terraform Plan here to regenerate tfplan
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init -input=false -no-color
@@ -98,6 +101,9 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3    
 
       # Re-run Terraform Plan here to regenerate tfplan before destroy
       - name: Terraform Init
