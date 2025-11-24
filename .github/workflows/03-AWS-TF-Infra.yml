@@ -20,9 +20,9 @@ jobs:
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v1
       with:
-        terraform_version: '1.4.6'  # Specify your Terraform version here
+        terraform_version: "1.4.6"  # Specify your Terraform version here
 
-    # Configure AWS credentials using GitHub Secrets
+    # Configure AWS Credentials using OIDC
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -33,7 +33,7 @@ jobs:
     - name: Navigate to TF Project
       run: cd AWSCloud/03-AWS-TF-Project
 
-    # Terraform init - Backend configuration is done inside the terraform file (main.tf)
+    # Terraform init
     - name: Terraform Init
       run: terraform init
 
@@ -46,20 +46,43 @@ jobs:
       id: plan
       run: terraform plan -out=tfplan
 
+    # Upload the tfplan as an artifact
+    - name: Upload tfplan artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: tfplan
+        path: tfplan
+
     # Manual Approval for Apply
     - name: Terraform Apply (Manual Approval)
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: peter-evans/manual-approval@v2
+      uses: trstringer/manual-approval@v1
       with:
-        approvers: |
-          ashishah0412  # Replace with your GitHub username
-        message: |
-          Please approve to apply the changes
+        secret: ${{ secrets.GITHUB_TOKEN }}
+        approvers: your-github-username
+        minimum-approvals: 1
 
-    # Apply Terraform Plan (once approved)
+    # Set up Terraform (for apply)
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: "1.4.6"  # Specify your Terraform version here
+
+    # Configure AWS Credentials using OIDC again (needed for Apply)
+    - name: Configure AWS Credentials for Apply
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    # Download the tfplan artifact
+    - name: Download tfplan artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: tfplan
+
+    # Terraform Apply
     - name: Terraform Apply
       run: terraform apply -auto-approve tfplan
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.plan.outcome == 'success'
 
     # Terraform Destroy (Manual Trigger)
     - name: Terraform Destroy
