@@ -23,12 +23,11 @@ jobs:
         terraform_version: '1.4.6'  # Specify your Terraform version here
 
     # Configure AWS credentials using GitHub Secrets
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
       with:
-        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws_region: us-east-1  # Specify your AWS region here
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+        aws-region: ${{ secrets.AWS_REGION }}
 
     # Navigate to the specific Terraform project directory
     - name: Navigate to TF Project
