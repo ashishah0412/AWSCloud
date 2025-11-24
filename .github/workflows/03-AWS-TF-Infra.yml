@@ -52,7 +52,7 @@ jobs:
       uses: peter-evans/manual-approval@v2
       with:
         approvers: |
-          your-github-username  # Replace with your GitHub username
+          ashishah0412  # Replace with your GitHub username
         message: |
           Please approve to apply the changes
 
