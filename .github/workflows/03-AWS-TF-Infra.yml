@@ -1,4 +1,4 @@
-name: Terraform CI/CD
+name: Terraform CI/CD 03 Project
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    # Set up Terraform
+    # Set up Terraform (first time)
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v1
       with:
@@ -53,16 +53,16 @@ jobs:
         name: tfplan
         path: tfplan
 
-    # Manual Approval for Apply
+    # Manual Approval for Apply (This is where the approval happens)
     - name: Terraform Apply (Manual Approval)
       uses: trstringer/manual-approval@v1
       with:
         secret: ${{ secrets.GITHUB_TOKEN }}
-        approvers: your-github-username
+        approvers: ashishah0412  # Replace with the username of the approvers
         minimum-approvals: 1
 
     # Set up Terraform (for apply)
-    - name: Set up Terraform
+    - name: Set up Terraform for Apply
       uses: hashicorp/setup-terraform@v1
       with:
         terraform_version: "1.4.6"  # Specify your Terraform version here
@@ -80,7 +80,7 @@ jobs:
       with:
         name: tfplan
 
-    # Terraform Apply
+    # Terraform Apply (Now, it will run only after approval)
     - name: Terraform Apply
       run: terraform apply -auto-approve tfplan
 
