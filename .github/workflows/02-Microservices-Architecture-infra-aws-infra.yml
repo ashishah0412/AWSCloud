@@ -9,6 +9,9 @@ on:
         default: 'destroy'
         type: choice
         options:
+          - init
+          - validate
+          - plan
           - destroy
       confirm_destroy:
         description: 'Type "yes" to confirm destroy action'
