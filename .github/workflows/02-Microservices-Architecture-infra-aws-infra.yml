@@ -1,23 +1,9 @@
 name: Terraform CI/CD Pipeline
 
 on:
-  workflow_dispatch:
-    inputs:
-      action:
-        description: 'Terraform action to perform (init, validate, plan, apply, destroy)'
-        required: true
-        default: 'destroy'
-        type: choice
-        options:
-          - init
-          - validate
-          - plan
-          - destroy
-      confirm_destroy:
-        description: 'Type "yes" to confirm destroy action'
-        required: true
-        default: 'no'
-        type: string
+  push:
+    branches:
+      - main
 
 permissions:
   id-token: write
@@ -30,7 +16,7 @@ jobs:
 
   Terraform-Destroy:
     name: 🔴 Manual Trigger → Destroy
-    if: github.event.inputs.action == 'destroy' && github.event.inputs.confirm_destroy == 'yes'  # Ensure both are confirmed
+    #if: github.event.inputs.action == 'destroy' && github.event.inputs.confirm_destroy == 'yes'  # Ensure both are confirmed
     runs-on: ubuntu-latest
 
     steps:
