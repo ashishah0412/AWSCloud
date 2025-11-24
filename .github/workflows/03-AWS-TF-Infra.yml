@@ -1,0 +1,68 @@
+name: Terraform CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allows manual triggering of destroy step
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    environment: production  # This ensures approval is required before apply step
+
+    steps:
+    # Checkout code from the repository
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    # Set up Terraform
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: '1.4.6'  # Specify your Terraform version here
+
+    # Configure AWS credentials using GitHub Secrets
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws_region: us-east-1  # Specify your AWS region here
+
+    # Navigate to the specific Terraform project directory
+    - name: Navigate to TF Project
+      run: cd AWSCloud/03-AWS-TF-Project
+
+    # Terraform init - Backend configuration is done inside the terraform file (main.tf)
+    - name: Terraform Init
+      run: terraform init
+
+    # Terraform validate
+    - name: Terraform Validate
+      run: terraform validate
+
+    # Terraform Plan
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan -out=tfplan
+
+    # Manual Approval for Apply
+    - name: Terraform Apply (Manual Approval)
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: peter-evans/manual-approval@v2
+      with:
+        approvers: |
+          your-github-username  # Replace with your GitHub username
+        message: |
+          Please approve to apply the changes
+
+    # Apply Terraform Plan (once approved)
+    - name: Terraform Apply
+      run: terraform apply -auto-approve tfplan
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.plan.outcome == 'success'
+
+    # Terraform Destroy (Manual Trigger)
+    - name: Terraform Destroy
+      if: github.event_name == 'workflow_dispatch'  # Allows manual trigger via GitHub Actions
+      run: terraform destroy -auto-approve
