@@ -68,9 +68,18 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: tfplan
+      # Re-run Terraform Plan here to regenerate tfplan
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init -input=false -no-color
+
+      - name: Terraform Validate
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform validate -no-color
+
+      - name: Terraform Plan (again before apply)
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform plan -input=false -var-file=envs/prod.tfvars -out=tfplan -no-color | tee plan_output.txt
 
       - name: Terraform Apply
         working-directory: ${{ env.TF_WORKING_DIR }}
@@ -90,9 +99,14 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      # Re-run Terraform Plan here to regenerate tfplan before destroy
       - name: Terraform Init
         working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init -input=false -no-color
+
+      - name: Terraform Plan (again before destroy)
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform plan -input=false -var-file=envs/prod.tfvars -out=tfplan -no-color | tee plan_output.txt
 
       - name: Terraform Destroy
         working-directory: ${{ env.TF_WORKING_DIR }}
